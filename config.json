@@ -1,7 +1,7 @@
 {
   "smtp_server": "email-smtp.us-east-1.amazonaws.com",
-  "smtp_user": "$NULL",
-  "smtp_password":"$NULL",
+  "smtp_username": "$NULL",
+  "smtp_password": "$NULL",
   "sender_email": "do_not_reply@mellondefender.tools",
   "notify_admin": true,
   "admin_email": "$NULL"
