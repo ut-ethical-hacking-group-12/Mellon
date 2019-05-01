@@ -173,6 +173,16 @@ function Notify-Users {
 
 }
 
+Write-Host "
+
+
+     dBBBBBBb  dBBBP  dBP    dBP    dBBBBP dBBBBb
+      '   dB'                      dB'.BP     dBP
+   dB'dB'dB' dBBP   dBP    dBP    dB'.BP dBP dBP 
+  dB'dB'dB' dBP    dBP    dBP    dB'.BP dBP dBP  
+ dB'dB'dB' dBBBBP dBBBBP dBBBBP dBBBBP dBP dBP   
+
+ "
 Write-Banner
 Get-Dependencies
 Get-Hashes
