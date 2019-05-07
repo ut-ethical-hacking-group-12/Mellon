@@ -103,9 +103,10 @@ function Get-Hashes {
 
 function Get-Passwords {
 
+    Write-Info "Attempting to crack hashes...."
     Remove-Item john_results.txt -ErrorAction SilentlyContinue
 
-    $null = & ".\john180j1w\run\john" "-wordlist:./rockyou.txt" "-format=NT" "./hashes.txt"
+    $null = & ".\john180j1w\run\john" "-wordlist:./rockyou.txt" "-format=NT" "./hashes.txt" *> $null
     $null = & ".\john180j1w\run\john" "--show" "./hashes.txt" > john_results.txt
 
     $users = @()
@@ -127,6 +128,8 @@ function Get-Passwords {
 
     Remove-Item john_results.txt
     Remove-Item hashes.txt
+
+    Write-Good "Complete!"
 
     return $users
 }
