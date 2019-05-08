@@ -1,22 +1,30 @@
-﻿Import-Module ActiveDirectory
+<# Group 12 - Mellon Defender
+   Team Members:
+   Joseph Manahan
+   Siwei Mao
+   Bernard Lau
+   Benjamin Singer #>
+
+
+Import-Module ActiveDirectory
 Import-Module BitsTransfer
 
 $raw = Get-Content .\config.json -Raw
 $config = ConvertFrom-Json -InputObject $raw
 
-function Write-Info { 
+function Write-Info {
 
     Param ($in)
     Write-Host "[*] $in"
 }
 
-function Write-Good { 
+function Write-Good {
 
     Param ($in)
     Write-Host "[+] $in"
 }
 
-function Write-Bad { 
+function Write-Bad {
 
     Param ($in)
     Write-Host "[-] $in"
@@ -73,7 +81,7 @@ function Get-Dependencies {
 
 function Get-Hashes {
 
-    Remove-Item hashes.txt -ErrorAction SilentlyContinue  
+    Remove-Item hashes.txt -ErrorAction SilentlyContinue
 
     Write-Info "Retrieving SAM database hashes..."
     start-process $PSScriptRoot\fgdump.exe
@@ -118,7 +126,7 @@ function Get-Passwords {
             $username = $array[0]
             $password = $array[1]
             if(!($password -eq "NO PASSWORD")) {
-                $users += $username 
+                $users += $username
                 $count++
             }
         } else {
@@ -159,7 +167,7 @@ function Notify-Users {
     Param ($recipients, $passwords)
 
     $smtp_passwd = ConvertTo-SecureString $config.smtp_password -AsPlainText -Force
-    $credentials = New-Object System.Management.Automation.PSCredential($config.smtp_username, $smtp_passwd) 
+    $credentials = New-Object System.Management.Automation.PSCredential($config.smtp_username, $smtp_passwd)
 
     For ($index = 0; $index -lt $recipients.length; $index++) {
 
@@ -192,7 +200,7 @@ function Get-EventLogs {
     foreach ($DC in $DCs){
 
         $slogonevents = Get-Eventlog -LogName Security -ComputerName $DC.Hostname -after $startDate | where {$_.eventID -eq 4624}
-   
+
         # Crawl through events; print all logon history with type, date/time, status, account name, computer and IP address if user logged on remotely
         foreach ($e in $slogonevents){
 
@@ -228,7 +236,7 @@ function Filter-EventLogs {
             # write-host $result
             if ($result.Matches.length -gt 0) {
 	        Add-Content report.txt $result.Matches.Groups[1]
-	        $count++    
+	        $count++
             }
         }
         Add-Content report.txt "-- $($user) had $($count) successful remote logins over the past 30 days"
@@ -260,9 +268,9 @@ Write-Host "
 
      dBBBBBBb  dBBBP  dBP    dBP    dBBBBP dBBBBb
       '   dB'                      dB'.BP     dBP
-   dB'dB'dB' dBBP   dBP    dBP    dB'.BP dBP dBP 
-  dB'dB'dB' dBP    dBP    dBP    dB'.BP dBP dBP  
- dB'dB'dB' dBBBBP dBBBBP dBBBBP dBBBBP dBP dBP   
+   dB'dB'dB' dBBP   dBP    dBP    dB'.BP dBP dBP
+  dB'dB'dB' dBP    dBP    dBP    dB'.BP dBP dBP
+ dB'dB'dB' dBBBBP dBBBBP dBBBBP dBBBBP dBP dBP
 
  "
 Write-Banner
