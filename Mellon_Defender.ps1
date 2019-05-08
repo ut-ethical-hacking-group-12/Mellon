@@ -129,7 +129,7 @@ function Get-Passwords {
     Remove-Item john_results.txt
     Remove-Item hashes.txt
 
-    Write-Good "Complete!"
+    Write-Good "Hash cracking complete!"
 
     return $users
 }
@@ -177,6 +177,84 @@ function Notify-Users {
 
 }
 
+function Get-EventLogs {
+
+    Remove-Item login_events.txt -ErrorAction SilentlyContinue
+    Write-Info "Gathering login events..."
+
+    # Find DC list from Active Directory
+    $DCs = Get-ADDomainController -Filter *
+
+    # Define time for report (default is 30 day)
+    $startDate = (get-date).AddDays(-30)
+
+    # Store successful logon events from security logs with the specified dates and workstation/IP in an array
+    foreach ($DC in $DCs){
+
+        $slogonevents = Get-Eventlog -LogName Security -ComputerName $DC.Hostname -after $startDate | where {$_.eventID -eq 4624}
+   
+        # Crawl through events; print all logon history with type, date/time, status, account name, computer and IP address if user logged on remotely
+        foreach ($e in $slogonevents){
+
+            if ($e.EventID -eq 4624){
+                $time = $e.TimeGenerated
+                $user = $e.ReplacementStrings[5]
+                $workstation = $e.ReplacementStrings[11]
+                $address = $e.ReplacementStrings[18]
+                Add-Content login_events.txt "Type: Remote Logon`tDate: $time`tStatus: Success`tUser: $user`tWorkstation: $workstation`tIP Address: $address"
+            }
+        }
+    }
+
+    Write-Good "Done gathering events."
+
+}
+
+function Filter-EventLogs {
+
+    Param ($users)
+
+    Get-EventLogs
+
+    Write-Info "Filtering events and formatting entries..."
+
+    Remove-Item report.txt -ErrorAction SilentlyContinue
+
+    ForEach($user in $users) {
+        Add-Content report.txt "$($user):"
+        $count = 0
+        ForEach($line in Get-Content -Path $PSScriptRoot\login_events.txt) {
+            $result = $line | Select-String -Pattern "(Type:\s*Remote\s*Logon[\w\s:/]*Status:\s*Success\s*User:\s*$($user)[\w\s:]*)"
+            # write-host $result
+            if ($result.Matches.length -gt 0) {
+	        Add-Content report.txt $result.Matches.Groups[1]
+	        $count++    
+            }
+        }
+        Add-Content report.txt "-- $($user) had $($count) successful remote logins over the past 30 days"
+    }
+
+    Write-Good "Formatting complete."
+    Remove-Item login_events.txt
+
+}
+
+function Notify-Administrator {
+
+    Param ($users)
+
+    Remove-Item report.txt -ErrorAction SilentlyContinue
+
+    $smtp_passwd = ConvertTo-SecureString $config.smtp_password -AsPlainText -Force
+    $credentials = New-Object System.Management.Automation.PSCredential($config.smtp_username, $smtp_passwd)
+    $recipient = $config.admin_email
+    Filter-EventLogs $users
+    $report = Get-Content report.txt -Raw
+
+    $timestamp = (Get-Date).ToString('MM/dd/yyyy hh:mm:ss tt')
+    Send-MailMessage -From $config.sender_email -Subject "MellonDefender Remote Login Report, $timestamp" -To $recipient -Body "MellonDefender has detected users in your domain with weak passwords. Their passwords have been reset and will need to be changed at next login. The fol is a report detailing any remote logins for affected users." -Attachments report.txt -Credential $credentials -SmtpServer $config.smtp_server -UseSsl
+}
+
 Write-Host "
 
 
@@ -196,6 +274,12 @@ if($count -gt 0) {
     Write-Bad "Cracked $count accounts. Issuing password changes to affected users: $users"
     $passwords = @(Update-Passwords $users)
     Notify-Users $users $passwords
+    if($config.notify_admin) {
+        Write-Info "Building a report for the administrator. This will take a while..."
+        Notify-Administrator $users
+        $recipient = $config.admin_email
+        Write-Good "Report sent to $recipient"
+    }
 } else {
     Write-Good "No vulnerable users detected!"
 }

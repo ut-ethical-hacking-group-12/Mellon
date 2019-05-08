@@ -1,9 +1,6 @@
-hashes.txt
-usernames.txt
-john_results.txt
+*.txt
 fgdump.exe
 john180j1w.zip
 john180j1w/*
 rockyou.txt.zip
-rockyou.txt
 _MACOSX/*
