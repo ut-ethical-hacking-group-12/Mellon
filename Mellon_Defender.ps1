@@ -260,7 +260,7 @@ function Notify-Administrator {
     $report = Get-Content report.txt -Raw
 
     $timestamp = (Get-Date).ToString('MM/dd/yyyy hh:mm:ss tt')
-    Send-MailMessage -From $config.sender_email -Subject "MellonDefender Remote Login Report, $timestamp" -To $recipient -Body "MellonDefender has detected users in your domain with weak passwords. Their passwords have been reset and will need to be changed at next login. The fol is a report detailing any remote logins for affected users." -Attachments report.txt -Credential $credentials -SmtpServer $config.smtp_server -UseSsl
+    Send-MailMessage -From $config.sender_email -Subject "MellonDefender Remote Login Report, $timestamp" -To $recipient -Body "MellonDefender has detected users in your domain with weak passwords. Their passwords have been reset and will need to be changed at next login. Attached is a report detailing any remote logins for affected users." -Attachments report.txt -Credential $credentials -SmtpServer $config.smtp_server -UseSsl
 }
 
 Write-Host "
